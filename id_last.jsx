@@ -3,9 +3,13 @@
 
 // Configuration - Paths will be selected via dialog boxes
 
-// Image positioning
-var imageX = 394.0;  // X position in pixels
-var imageY = 467.5;  // Y position in pixels
+// Image positioning (center point coordinates)
+var imageCenterX = 394.0;  // X position for image center
+var imageCenterY = 459.0;  // Y position for image center
+
+// Image dimensions
+var imageWidth = 195;   // Image width in pixels
+var imageHeight = 247;  // Image height in pixels
 
 // Supported image formats
 var imageExtensions = [".jpg", ".jpeg", ".png", ".tif", ".tiff"];
@@ -106,7 +110,7 @@ function processIDCard(psdFile, imageFile, rollNo, outputFolder) {
         
         if (placedLayer) {
             // Position the image
-            positionLayer(placedLayer, imageX, imageY);
+            positionLayer(placedLayer, imageCenterX, imageCenterY);
             
             // Save the document
             var outputFile = new File(outputFolder.fsName + "/" + rollNo + ".psd");
@@ -167,49 +171,21 @@ function placeImageAlternative(doc, imageFile) {
     }
 }
 
-function positionLayer(layer, x, y) {
+function positionLayer(layer, centerX, centerY) {
     try {
         // Get layer bounds
         var bounds = layer.bounds;
         
-        // Calculate current top-left position
-        var currentX = bounds[0].value;
-        var currentY = bounds[1].value;
+        // Calculate current center position
+        var currentCenterX = (bounds[0].value + bounds[2].value) / 2;
+        var currentCenterY = (bounds[1].value + bounds[3].value) / 2;
         
-        // Calculate offset needed to move to target position (top-left corner)
-        var deltaX = x - currentX;
-        var deltaY = y - currentY;
+        // Calculate offset needed to move center to target position
+        var deltaX = centerX - currentCenterX;
+        var deltaY = centerY - currentCenterY;
         
-        // Translate the layer
+        // Translate the layer to position center at target coordinates
         layer.translate(deltaX, deltaY);
-        
-        // Alternative method using transform if translate doesn't work properly
-        // Uncomment the lines below and comment out layer.translate if needed
-        /*
-        var idTrnf = charIDToTypeID("Trnf");
-        var desc = new ActionDescriptor();
-        var idnull = charIDToTypeID("null");
-        var ref = new ActionReference();
-        var idLyr = charIDToTypeID("Lyr ");
-        var idOrdn = charIDToTypeID("Ordn");
-        var idTrgt = charIDToTypeID("Trgt");
-        ref.putEnumerated(idLyr, idOrdn, idTrgt);
-        desc.putReference(idnull, ref);
-        var idFTcs = charIDToTypeID("FTcs");
-        var idQCSt = charIDToTypeID("QCSt");
-        var idQcsa = charIDToTypeID("Qcsa");
-        desc.putEnumerated(idFTcs, idQCSt, idQcsa);
-        var idOfst = charIDToTypeID("Ofst");
-        var desc2 = new ActionDescriptor();
-        var idHrzn = charIDToTypeID("Hrzn");
-        var idPxl = charIDToTypeID("#Pxl");
-        desc2.putUnitDouble(idHrzn, idPxl, x);
-        var idVrtc = charIDToTypeID("Vrtc");
-        desc2.putUnitDouble(idVrtc, idPxl, y);
-        var idOfst = charIDToTypeID("Ofst");
-        desc.putObject(idOfst, idOfst, desc2);
-        executeAction(idTrnf, desc);
-        */
         
     } catch (e) {
         throw new Error("Failed to position layer: " + e.message);
